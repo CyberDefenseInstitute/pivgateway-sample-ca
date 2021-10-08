@@ -37,7 +37,7 @@ pivgateway.server.example.com.crt が公開鍵証明書、pivgateway.server.exam
 ### ドア向けカードリーダ
 
 - CN = room1
-- SAN:email:room1@example.com
+- SAN = email:room1@example.com
 - X509v3 Extended Key Usage: TLS Web Server Authentication, TLS Web Client Authentication, E-mail Protection
 
 room1.crt が公開鍵証明書、room1.key が秘密鍵となります。
