@@ -48,7 +48,7 @@ room1.crt が公開鍵証明書、room1.key が秘密鍵となります。
 
 - CN = Robert Smith
 - emailAddress = rsmith@example.com
-- SAN: email:rsmith@example.com
+- SAN = email:rsmith@example.com
 - X509v3 Extended Key Usage: TLS Web Client Authentication
 
 証明書の有効期限は2031年9月22日
