@@ -225,6 +225,9 @@ gen_cert "user2" "user2" "$PKI_DIR/user_certs"
 # Also create .crt versions for compatibility
 cp "$PKI_DIR/user_certs/user1.pem" "$PKI_DIR/user_certs/user1.crt"
 cp "$PKI_DIR/user_certs/user2.pem" "$PKI_DIR/user_certs/user2.crt"
+# Copy user keys to user_req/ for test compatibility (test_auth.c references user_req/)
+cp "$PKI_DIR/user_certs/user1.key" "$PKI_DIR/user_req/user1.key"
+cp "$PKI_DIR/user_certs/user2.key" "$PKI_DIR/user_req/user2.key"
 echo "✓ User certificates generated"
 
 echo ""
