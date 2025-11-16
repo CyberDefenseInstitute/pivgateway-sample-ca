@@ -125,12 +125,24 @@ echo ""
 echo "Step 4: Generating User Certificates..."
 gen_cert "user1" "user1" "$PKI_DIR/user_certs"
 gen_cert "user2" "user2" "$PKI_DIR/user_certs"
+# Also create .crt versions for compatibility
+cp "$PKI_DIR/user_certs/user1.pem" "$PKI_DIR/user_certs/user1.crt"
+cp "$PKI_DIR/user_certs/user2.pem" "$PKI_DIR/user_certs/user2.crt"
 echo "✓ User certificates generated"
 
 echo ""
 echo "Step 5: Generating Signer Certificate..."
 gen_cert "signer1" "signer1" "$PKI_DIR/user_certs"
-echo "✓ Signer certificate generated"
+# Also generate signer certificate in door_req/door_certs for compatibility with test_auth.c and setup-tpm-keys.sh
+openssl genrsa -out "$PKI_DIR/door_req/signer1.key" 2048 2>/dev/null
+openssl req -new -key "$PKI_DIR/door_req/signer1.key" \
+  -out "$TEMP_DIR/signer1_door.csr" \
+  -subj "/C=JP/ST=Tokyo/L=Tokyo/O=pivGateway/OU=test/CN=signer1" 2>/dev/null
+openssl x509 -req -in "$TEMP_DIR/signer1_door.csr" \
+  -CA "$PKI_DIR/certs/ca.pem" -CAkey "$PKI_DIR/private/ca.key" \
+  -out "$PKI_DIR/door_certs/signer1.pem" \
+  -days $DAYS_CERT -sha256 -CAcreateserial 2>/dev/null
+echo "✓ Signer certificate generated (user_certs/ and door_req/door_certs/)"
 
 echo ""
 echo "Step 6: Generating Special Test Certificates..."
