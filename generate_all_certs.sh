@@ -74,6 +74,13 @@ OU = test
 
 [v3_req]
 subjectAltName = DNS:ldap.pivgateway.jp
+
+[v3_cert]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = emailProtection, codeSigning
 EOF
         sed -i "s/O = pivGateway/O = pivGateway\nCN = $cn/" "$TEMP_DIR/${name}.conf"
     else
@@ -89,6 +96,13 @@ L = Tokyo
 O = pivGateway
 OU = test
 CN = $cn
+
+[v3_cert]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = emailProtection, codeSigning
 EOF
     fi
 
@@ -98,7 +112,8 @@ EOF
     openssl x509 -req -in "$TEMP_DIR/${name}.csr" \
       -CA "$PKI_DIR/certs/ca.pem" -CAkey "$PKI_DIR/private/ca.key" \
       -out "$dir/${name}.pem" \
-      -days $DAYS_CERT -sha256 -CAcreateserial 2>/dev/null
+      -days $DAYS_CERT -sha256 -CAcreateserial \
+      -extfile "$TEMP_DIR/${name}.conf" -extensions v3_cert 2>/dev/null
 }
 
 echo ""
@@ -135,13 +150,37 @@ echo "Step 5: Generating Signer Certificate..."
 gen_cert "signer1" "signer1" "$PKI_DIR/user_certs"
 # Also generate signer certificate in door_req/door_certs for compatibility with test_auth.c and setup-tpm-keys.sh
 openssl genrsa -out "$PKI_DIR/door_req/signer1.key" 2048 2>/dev/null
+
+# Create OpenSSL config for signer1 door certificate with X.509v3 extensions
+cat > "$TEMP_DIR/signer1_door.conf" << 'EOF'
+[req]
+distinguished_name = req_distinguished_name
+prompt = no
+
+[req_distinguished_name]
+C = JP
+ST = Tokyo
+L = Tokyo
+O = pivGateway
+OU = test
+CN = signer1
+
+[v3_cert]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints = CA:FALSE
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = emailProtection, codeSigning
+EOF
+
 openssl req -new -key "$PKI_DIR/door_req/signer1.key" \
-  -out "$TEMP_DIR/signer1_door.csr" \
-  -subj "/C=JP/ST=Tokyo/L=Tokyo/O=pivGateway/OU=test/CN=signer1" 2>/dev/null
+  -config "$TEMP_DIR/signer1_door.conf" \
+  -out "$TEMP_DIR/signer1_door.csr" 2>/dev/null
 openssl x509 -req -in "$TEMP_DIR/signer1_door.csr" \
   -CA "$PKI_DIR/certs/ca.pem" -CAkey "$PKI_DIR/private/ca.key" \
   -out "$PKI_DIR/door_certs/signer1.pem" \
-  -days $DAYS_CERT -sha256 -CAcreateserial 2>/dev/null
+  -days $DAYS_CERT -sha256 -CAcreateserial \
+  -extfile "$TEMP_DIR/signer1_door.conf" -extensions v3_cert 2>/dev/null
 echo "✓ Signer certificate generated (user_certs/ and door_req/door_certs/)"
 
 echo ""
