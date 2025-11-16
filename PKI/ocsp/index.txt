@@ -1,0 +1,2 @@
+V	351114070000Z		01	unknown	/C=JP/ST=Tokyo/L=Tokyo/O=pivGateway/OU=reader/CN=revoked-user3
+R	351114070000Z	251115070000Z	01	revoked	/C=JP/ST=Tokyo/L=Tokyo/O=pivGateway/OU=reader/CN=revoked-user3
